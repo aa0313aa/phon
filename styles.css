@@ -116,4 +116,8 @@ footer{background:transparent;color:#222;padding:36px 16px;text-align:center}
   .fixed-callbar{display:none}
 }
 
+/* Toast for small messages */
+.site-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:rgba(0,0,0,0.85);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;opacity:0;transition:opacity .18s;z-index:99999}
+.site-toast.show{opacity:1}
+
 

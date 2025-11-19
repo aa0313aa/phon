@@ -51,7 +51,7 @@
     <section class="hero" aria-labelledby="hero-title" aria-describedby="hero-desc">
       <h1 id="hero-title">사용하지 않는 폰,<br>현금으로 바꿔드립니다</h1>
       <p id="hero-desc">박스폰 · 최신 중고폰 최고가 매입 · 데이터 완전 삭제로 안심 거래</p>
-      <a href="tel:01082909536" class="cta-button" aria-label="전화로 견적 받기">📞 지금 바로 견적 받기</a>
+      <a href="call.html" class="cta-button" aria-label="전화로 견적 받기">📞 지금 바로 견적 받기</a>
     </section>
 
     <section class="features" aria-label="서비스 특징">
@@ -120,7 +120,7 @@
       <p>믿을 수 있는 지역 전문 업체</p>
       <div class="contact-box" aria-label="매입 문의">
         <p>매입 문의 / 출장 요청</p>
-          <a href="tel:01082909536" class="phone-number" aria-label="전화 010-8290-9536">010-8290-9536</a>
+          <a href="call.html" class="phone-number" aria-label="전화 010-8290-9536">010-8290-9536</a>
         <p>365일 상담 환영 (부재시 문자 주세요)</p>
       </div>
       <p class="meta">사업자등록번호: [사업자번호 입력] · 주소: 전라북도 남원시 [상세주소 입력]</p>
@@ -129,12 +129,47 @@
       </div>
     </footer>
   <!-- 모바일 하단 고정 전화 바 -->
-  <div class="fixed-callbar" role="region" aria-label="전화 문의">
+    <div class="fixed-callbar" role="region" aria-label="전화 문의">
     <div class="call-desc">지금 바로 판매 견적 받기</div>
-    <a class="call-btn" href="tel:01082909536" aria-label="전화 010-8290-9536">📞 010-8290-9536</a>
+    <a class="call-btn" href="call.html" aria-label="전화 010-8290-9536">📞 010-8290-9536</a>
   </div>
 
   <script>
+    // --- UTM / tracking helper ---
+    (function(){
+      function parseQS(qs){
+        const o={};
+        if(!qs) return o;
+        qs.replace(/^\?/,'').split('&').forEach(p=>{const [k,v]=p.split('='); if(k) o[decodeURIComponent(k)]=decodeURIComponent(v||'');});
+        return o;
+      }
+      const qs = parseQS(location.search);
+      // save utm params if present
+      const utmKeys = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'];
+      const utm = {};
+      utmKeys.forEach(k=>{ if(qs[k]) utm[k]=qs[k]; });
+      if(Object.keys(utm).length) localStorage.setItem('utmParams', JSON.stringify(utm));
+      // apply stored utm to call links by appending as query string to call.html
+      const stored = JSON.parse(localStorage.getItem('utmParams')||'{}');
+      function toQS(obj){ return Object.keys(obj).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(obj[k])).join('&'); }
+      const qstr = toQS(stored);
+      document.querySelectorAll('a[href="call.html"]').forEach(a=>{ if(qstr) a.href = 'call.html?'+qstr; });
+    })();
+
+    // simple toast for save feedback
+    function showToast(msg){
+      let t = document.getElementById('site-toast');
+      if(!t){ t = document.createElement('div'); t.id='site-toast'; t.className='site-toast'; document.body.appendChild(t); }
+      t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600);
+    }
+
+    // price formatting helper
+    function formatPrice(v){
+      if(!v || v==='문의') return '문의';
+      const n = String(v).replace(/[^0-9]/g,'');
+      if(!n) return '문의';
+      return Number(n).toLocaleString('ko-KR') + '원';
+    }
     // 모델별 이미지 목록 (폴더 구조: img/<모델폴더>/파일.png)
     // 이 매핑은 현재 로컬의 img 하위 폴더를 기반으로 생성되었습니다.
     const models = {
@@ -285,6 +320,7 @@
           const t = document.createElement('button'); t.className='thumb'; t.type='button';
           const ti = document.createElement('img');
           ti.src = 'img/' + encodeURIComponent(p).replace(/%2F/g, '/');
+          ti.loading = 'lazy';
           ti.alt = modelName + ' 썸네일 ' + (idx+1);
           t.appendChild(ti);
           t.addEventListener('click', ()=>{
@@ -301,10 +337,10 @@
       const h3 = document.createElement('h3'); h3.textContent = modelName;
 
       const priceUsed = document.createElement('div'); priceUsed.className = 'price-row';
-      priceUsed.innerHTML = `<span class="label">중고 매입가</span><span class="value">${saved[modelName]?.used || '문의'}</span>`;
+      priceUsed.innerHTML = `<span class="label">중고 매입가</span><span class="value">${formatPrice(saved[modelName]?.used || '문의')}</span>`;
 
       const priceBox = document.createElement('div'); priceBox.className = 'price-row';
-      priceBox.innerHTML = `<span class="label">박스폰 매입가</span><span class="value">${saved[modelName]?.box || '문의'}</span>`;
+      priceBox.innerHTML = `<span class="label">박스폰 매입가</span><span class="value">${formatPrice(saved[modelName]?.box || '문의')}</span>`;
 
       const controls = document.createElement('div'); controls.className = 'price-controls';
       const editBtn = document.createElement('button'); editBtn.className = 'btn edit'; editBtn.textContent = '편집';
@@ -333,8 +369,8 @@
 
       editBtn.addEventListener('click', ()=>{
         inputUsed.style.display='block'; inputBox.style.display='block';
-        inputUsed.value = saved[modelName]?.used || '';
-        inputBox.value = saved[modelName]?.box || '';
+        inputUsed.value = saved[modelName]?.used ? saved[modelName].used.replace(/[^0-9]/g,'') : '';
+        inputBox.value = saved[modelName]?.box ? saved[modelName].box.replace(/[^0-9]/g,'') : '';
         editBtn.style.display='none'; saveBtn.style.display='inline-block'; cancelBtn.style.display='inline-block';
       });
       cancelBtn.addEventListener('click', ()=>{
@@ -342,11 +378,14 @@
         editBtn.style.display='inline-block'; saveBtn.style.display='none'; cancelBtn.style.display='none';
       });
       saveBtn.addEventListener('click', ()=>{
-        const used = inputUsed.value.trim() || '문의';
-        const box = inputBox.value.trim() || '문의';
+        const usedRaw = inputUsed.value.trim() || '';
+        const boxRaw = inputBox.value.trim() || '';
+        const used = usedRaw ? formatPrice(usedRaw) : '문의';
+        const box = boxRaw ? formatPrice(boxRaw) : '문의';
         const all = loadPrices(); all[modelName] = { used, box }; savePrices(all);
         priceUsed.querySelector('.value').textContent = used;
         priceBox.querySelector('.value').textContent = box;
+        showToast('저장되었습니다');
         cancelBtn.click();
       });
     });
@@ -358,7 +397,8 @@
       <div class="lb-content">
         <button class="lb-close" aria-label="닫기">✕</button>
         <button class="lb-prev" aria-label="이전">‹</button>
-        <div class="lb-image-wrap"><img class="lb-image" alt="확대 이미지"></div>
+        <div class="lb-image-wrap"><img class="lb-image" alt="확대 이미지" loading="lazy"></div>
+        <div class="lb-counter" aria-live="polite"></div>
         <button class="lb-next" aria-label="다음">›</button>
         <div class="lb-thumbs"></div>
       </div>`;
@@ -385,13 +425,15 @@
     function closeLightbox(){ lbEl.classList.remove('open'); document.body.style.overflow=''; }
     function renderLightbox(){
       lbImage.src = 'img/' + encodeURIComponent(lbImages[lbIndex]).replace(/%2F/g, '/');
+      lbImage.loading = 'lazy';
+      const counter = lbEl.querySelector('.lb-counter'); if(counter) counter.textContent = (lbIndex+1) + ' / ' + lbImages.length;
       // thumbs
       lbThumbs.innerHTML='';
       lbImages.forEach((p,i)=>{
         const t = document.createElement('button'); t.className='thumb'; t.type='button';
-        const ti = document.createElement('img'); ti.src = 'img/' + encodeURIComponent(p).replace(/%2F/g, '/');
+        const ti = document.createElement('img'); ti.src = 'img/' + encodeURIComponent(p).replace(/%2F/g, '/'); ti.loading='lazy';
         ti.alt = 'thumb '+(i+1);
-        if(i===lbIndex) t.style.outline='3px solid var(--accent)';
+        if(i===lbIndex) t.style.outline='3px solid var(--brand-pink)';
         t.appendChild(ti);
         t.addEventListener('click', ()=>{ lbIndex=i; renderLightbox(); });
         lbThumbs.appendChild(t);

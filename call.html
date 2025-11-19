@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>전화 연결 — 전국모바일</title>
+  <style>
+    body{font-family:system-ui, -apple-system, 'Noto Sans KR', sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#fff6fb;color:#222}
+    .box{background:#fff;padding:20px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.06);max-width:420px;text-align:center}
+    .num{font-size:1.25rem;font-weight:800;color:#d63f7a;margin:8px 0}
+    .btn{background:linear-gradient(90deg,#ff6fa3,#d63f7a);color:#fff;border:none;padding:12px 18px;border-radius:10px;font-weight:800;cursor:pointer}
+    .note{font-size:0.95rem;color:#666;margin-top:12px}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div>지금 전화하시겠습니까?</div>
+    <div class="num">📞 010-8290-9536</div>
+    <button class="btn" id="callBtn">전화 걸기</button>
+    <div class="note">(상태에 따라 자동으로 전화 걸리지 않을 수 있습니다. 버튼을 눌러주세요)</div>
+  </div>
+  <script>
+    // collect utm from query or storage and log locally before calling
+    function parseQS(qs){const o={}; if(!qs) return o; qs.replace(/^\?/,'').split('&').forEach(p=>{const [k,v]=p.split('='); if(k) o[decodeURIComponent(k)]=decodeURIComponent(v||'');}); return o;}
+    const params = parseQS(location.search);
+    const stored = JSON.parse(localStorage.getItem('utmParams')||'{}');
+    const merged = Object.assign({}, stored, params);
+    // save a call log in localStorage
+    try{
+      const logs = JSON.parse(localStorage.getItem('callLogs')||'[]');
+      logs.push({time: Date.now(), utm: merged});
+      localStorage.setItem('callLogs', JSON.stringify(logs));
+    }catch(e){}
+
+    document.getElementById('callBtn').addEventListener('click', ()=>{
+      // redirect to tel: link
+      location.href = 'tel:01082909536';
+    });
+
+    // auto-trigger for mobile
+    setTimeout(()=>{
+      // try auto dial for convenience
+      // do not force on desktop; only trigger when user interacted
+    },1200);
+  </script>
+</body>
+</html>
