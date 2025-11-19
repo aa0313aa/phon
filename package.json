@@ -1,0 +1,7 @@
+{
+  "name": "phon-site",
+  "version": "1.0.0",
+  "scripts": {
+    "scan-images": "node scripts/scan-images.js"
+  }
+}
